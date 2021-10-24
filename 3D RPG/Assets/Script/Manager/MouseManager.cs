@@ -11,6 +11,7 @@ namespace Script.Manager
         [SerializeField] private Texture2D point, doorway, attack, target, arrow;
 
         public event Action<Vector3> ONMouseClicked;
+        public event Action<GameObject> OnEnemyClicked; 
 
         private RaycastHit hitInfo;
 
@@ -40,6 +41,9 @@ namespace Script.Manager
                     case "Ground":
                         Cursor.SetCursor(target, new Vector2(16, 16), CursorMode.Auto);
                         break;
+                    case "Enemy":
+                        Cursor.SetCursor(attack, new Vector2(16, 16), CursorMode.Auto);
+                        break;
                 }
             }
         }
@@ -51,6 +55,11 @@ namespace Script.Manager
                 if (hitInfo.collider.gameObject.CompareTag("Ground"))
                 {
                     ONMouseClicked?.Invoke(hitInfo.point);
+                }
+
+                if (hitInfo.collider.gameObject.CompareTag("Enemy"))
+                {
+                    OnEnemyClicked?.Invoke(hitInfo.collider.gameObject);
                 }
             }
         }
