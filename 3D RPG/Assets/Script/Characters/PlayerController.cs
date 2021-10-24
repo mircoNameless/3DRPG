@@ -5,6 +5,7 @@ using Script.Character_Stats.ScriptableObject;
 using Script.Manager;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
 namespace Script.Characters
 {
@@ -15,6 +16,8 @@ namespace Script.Characters
 
         private CharacterStats characterStats;
 
+        private bool isDead;
+
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
@@ -24,13 +27,22 @@ namespace Script.Characters
 
         private void Start()
         {
-            MouseManager.instance.ONMouseClicked += MoveTotTarget;
-            MouseManager.instance.OnEnemyClicked += EventAttack;
+            MouseManager.Instance.ONMouseClicked += MoveTotTarget;
+            MouseManager.Instance.OnEnemyClicked += EventAttack;
+            
+            GameManager.Instance.RegisterPlay(characterStats);
         }
 
 
         private void Update()
         {
+            isDead = characterStats.currentHealth == 0;
+
+            if (isDead)
+            {
+                GameManager.Instance.NotifyObservers();
+            }
+            
             SwitchAnimation();
 
             lastAttackTime -= Time.deltaTime;
@@ -39,6 +51,7 @@ namespace Script.Characters
         private void SwitchAnimation()
         {
             anim.SetFloat("Speed", agent.velocity.sqrMagnitude);
+            anim.SetBool("Death", isDead);
         }
 
         private void MoveTotTarget(Vector3 target)
@@ -56,19 +69,20 @@ namespace Script.Characters
             if (target != null)
             {
                 attackTarget = target;
+                characterStats.isCritical = Random.value < characterStats.attackData.criticalChange;
+                StartCoroutine(MoveToAttackTarget());
             }
-
-            StartCoroutine(MoveToAttackTarget());
         }
 
         IEnumerator MoveToAttackTarget()
         {
             agent.isStopped = false;
-            
+
             transform.LookAt(attackTarget.transform);
 
             // todo: 修改攻击范围参数
-            while (Vector3.Distance(attackTarget.transform.position, transform.position) > 1f)
+            while (Vector3.Distance(attackTarget.transform.position, transform.position) >
+                   characterStats.attackData.attackRange)
             {
                 agent.SetDestination(attackTarget.transform.position);
                 yield return null;
@@ -79,9 +93,18 @@ namespace Script.Characters
 
             if (lastAttackTime <= 0)
             {
+                anim.SetBool("Critical", characterStats.isCritical);
                 anim.SetTrigger("Attack");
-                lastAttackTime = 0.5f;
+                lastAttackTime = characterStats.attackData.coolDown;
             }
+        }
+
+        //Animation Event
+        void Hit()
+        {
+            var targetStats = attackTarget.GetComponent<CharacterStats>();
+
+            targetStats.TakeDamage(characterStats, targetStats);
         }
     }
 }

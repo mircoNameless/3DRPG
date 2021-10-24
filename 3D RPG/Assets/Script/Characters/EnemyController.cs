@@ -1,4 +1,7 @@
 using System;
+using Script.Character_Stats.MonoBehaviour;
+using Script.Manager;
+using Tools;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
@@ -15,11 +18,14 @@ namespace Script.Characters
     }
 
     [RequireComponent(typeof(NavMeshAgent))]
-    public class EnemyController : MonoBehaviour
+    public class EnemyController : MonoBehaviour, IEndGameObserver
     {
         private NavMeshAgent agent;
         private Animator anim;
+        private Collider coll;
         private EnemyState enemyState;
+
+        private CharacterStats characterStats;
 
         [Header("Basic Setting")] public float sightRadius;
         public bool isGuard;
@@ -30,20 +36,28 @@ namespace Script.Characters
         public float lookAtTime;
         private float remainLookAtTime;
 
+        private float lastAttackTime;
+
         [Header("Patrol State")] public float patrolRange;
         private Vector3 wayPoint;
         private Vector3 guardPos;
+        private Quaternion guardRotation;
 
         private bool isWalk;
         private bool isChase;
         private bool isFollow;
+        private bool isDead;
+        private bool playerDead;
 
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
             anim = GetComponent<Animator>();
+            characterStats = GetComponent<CharacterStats>();
+            coll = GetComponent<Collider>();
             speed = agent.speed;
             guardPos = transform.position;
+            guardRotation = transform.rotation;
 
             remainLookAtTime = lookAtTime;
         }
@@ -61,10 +75,32 @@ namespace Script.Characters
             }
         }
 
+        private void OnEnable()
+        {
+            GameManager.Instance.AddObserver(this);
+        }
+
+        private void OnDisable()
+        {
+            if (GameManager.Instance)
+            {
+                GameManager.Instance.RemoveObserver(this);
+            }
+        }
+
         private void Update()
         {
-            SwitchState();
-            SwitchAnimation();
+            if (characterStats.currentHealth == 0)
+            {
+                isDead = true;
+            }
+
+            if (!playerDead)
+            {
+                SwitchState();
+                SwitchAnimation();
+                lastAttackTime -= Time.deltaTime;
+            }
         }
 
         private void SwitchAnimation()
@@ -72,12 +108,18 @@ namespace Script.Characters
             anim.SetBool("Walk", isWalk);
             anim.SetBool("Chase", isChase);
             anim.SetBool("Follow", isFollow);
+            anim.SetBool("Critical", characterStats.isCritical);
+            anim.SetBool("Death", isDead);
         }
 
         private void SwitchState()
         {
+            if (isDead)
+            {
+                enemyState = EnemyState.DEAD;
+            }
             // 如果发现player 切换到CHASE
-            if (FoundPlayer())
+            else if (FoundPlayer())
             {
                 enemyState = EnemyState.CHASE;
             }
@@ -85,6 +127,20 @@ namespace Script.Characters
             switch (enemyState)
             {
                 case EnemyState.GUARD:
+                    isChase = false;
+                    if (transform.position != guardPos)
+                    {
+                        isWalk = true;
+                        agent.isStopped = false;
+                        agent.SetDestination(guardPos);
+
+                        if (Vector3.SqrMagnitude(guardPos - transform.position) <= agent.stoppingDistance)
+                        {
+                            isWalk = false;
+                            transform.rotation = Quaternion.Lerp(transform.rotation, guardRotation, 0.1f);
+                        }
+                    }
+
                     break;
                 case EnemyState.PATORL:
 
@@ -112,10 +168,6 @@ namespace Script.Characters
 
                     break;
                 case EnemyState.CHASE:
-                    // todo: 追Player
-
-                    // todo: 在攻击范围内攻击
-                    // todo: 执行动画
                     isWalk = false;
                     isChase = true;
 
@@ -140,14 +192,52 @@ namespace Script.Characters
                     else
                     {
                         isFollow = true;
+                        agent.isStopped = false;
                         agent.SetDestination(attackTarget.transform.position);
                     }
 
+                    // 在攻击范围内攻击
+
+                    if (TargetInAttackRange() || TargetInSkillRange())
+                    {
+                        isFollow = false;
+                        agent.isStopped = true;
+
+                        if (lastAttackTime < 0)
+                        {
+                            lastAttackTime = characterStats.attackData.coolDown;
+
+                            // 暴击判断
+                            characterStats.isCritical = Random.value < characterStats.attackData.criticalChange;
+                            // 执行攻击
+                            Attack();
+                        }
+                    }
+
+
                     break;
                 case EnemyState.DEAD:
+                    coll.enabled = false;
+                    agent.enabled = false;
+                    Destroy(gameObject, 2f);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void Attack()
+        {
+            transform.LookAt(attackTarget.transform);
+            if (TargetInAttackRange())
+            {
+                // 近身攻击
+                anim.SetTrigger("Attack");
+            }
+            else if (TargetInSkillRange())
+            {
+                // 技能攻击
+                anim.SetTrigger("Skill");
             }
         }
 
@@ -165,6 +255,28 @@ namespace Script.Characters
             }
 
             attackTarget = null;
+            return false;
+        }
+
+        private bool TargetInAttackRange()
+        {
+            if (attackTarget != null)
+            {
+                return Vector3.Distance(attackTarget.transform.position, transform.position) <=
+                       characterStats.attackData.attackRange;
+            }
+
+            return false;
+        }
+
+        private bool TargetInSkillRange()
+        {
+            if (attackTarget != null)
+            {
+                return Vector3.Distance(attackTarget.transform.position, transform.position) <=
+                       characterStats.attackData.skillRange;
+            }
+
             return false;
         }
 
@@ -187,6 +299,29 @@ namespace Script.Characters
         {
             Gizmos.color = Color.blue;
             Gizmos.DrawWireSphere(transform.position, sightRadius);
+        }
+
+        // Animation Event
+        void Hit()
+        {
+            if (attackTarget != null)
+            {
+                var targetStats = attackTarget.GetComponent<CharacterStats>();
+                targetStats.TakeDamage(characterStats, targetStats);
+            }
+        }
+
+        public void EndNotify()
+        {
+            // 获胜动画
+            // 停止所有移动
+            // 停止Agent
+
+            anim.SetBool("Win", true);
+            playerDead = true;
+            isChase = false;
+            isWalk = false;
+            attackTarget = null;
         }
     }
 }

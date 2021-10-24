@@ -1,13 +1,12 @@
 using System;
+using Tools;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace Script.Manager
 {
-    public class MouseManager : MonoBehaviour
+    public class MouseManager : Singleton<MouseManager>
     {
-        public static MouseManager instance;
-
         [SerializeField] private Texture2D point, doorway, attack, target, arrow;
 
         public event Action<Vector3> ONMouseClicked;
@@ -15,14 +14,10 @@ namespace Script.Manager
 
         private RaycastHit hitInfo;
 
-        private void Awake()
+        protected override void Awake()
         {
-            if (instance != null)
-            {
-                Destroy(gameObject);
-            }
-
-            instance = this;
+            base.Awake();
+            // DontDestroyOnLoad(this);
         }
 
         private void Update()

@@ -9,10 +9,13 @@ MonoBehaviour:
   m_GameObject: {fileID: 0}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 20c15c4c7a9988d4293714798e7e1a13, type: 3}
-  m_Name: Player Data
+  m_Script: {fileID: 11500000, guid: 0e09833aae4491244ae073124a469975, type: 3}
+  m_Name: SilmeAttackData
   m_EditorClassIdentifier: 
-  maxHealth: 100
-  currentHealth: 100
-  baseDefense: 2
-  currentDefense: 2
+  attackRange: 1
+  skillRange: 0
+  coolDown: 1
+  minDamage: 2
+  maxDamage: 4
+  criticalMultiplier: 2
+  criticalChange: 0.2
