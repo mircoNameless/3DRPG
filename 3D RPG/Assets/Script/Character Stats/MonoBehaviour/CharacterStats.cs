@@ -1,11 +1,14 @@
+using System;
 using Script.Character_Stats.ScriptableObject;
 using Script.Combat;
 using UnityEngine;
+using Random = UnityEngine.Random;
 
 namespace Script.Character_Stats.MonoBehaviour
 {
     public class CharacterStats : UnityEngine.MonoBehaviour
     {
+        public CharacterData_SO templateData;
         public CharacterData_SO characterData;
 
         public AttackData_SO attackData;
@@ -71,6 +74,14 @@ namespace Script.Character_Stats.MonoBehaviour
         }
 
         #endregion
+
+        private void Awake()
+        {
+            if (templateData != null)
+            {
+                characterData = Instantiate(templateData);
+            }
+        }
 
         #region Character Combat
 

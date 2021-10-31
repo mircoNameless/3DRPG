@@ -29,7 +29,7 @@ namespace Script.Characters
         {
             MouseManager.Instance.ONMouseClicked += MoveTotTarget;
             MouseManager.Instance.OnEnemyClicked += EventAttack;
-            
+
             GameManager.Instance.RegisterPlay(characterStats);
         }
 
@@ -42,7 +42,7 @@ namespace Script.Characters
             {
                 GameManager.Instance.NotifyObservers();
             }
-            
+
             SwitchAnimation();
 
             lastAttackTime -= Time.deltaTime;
@@ -56,8 +56,10 @@ namespace Script.Characters
 
         private void MoveTotTarget(Vector3 target)
         {
-            agent.isStopped = false;
             StopAllCoroutines();
+            if (isDead) return;
+
+            agent.isStopped = false;
             agent.SetDestination(target);
         }
 
@@ -66,6 +68,8 @@ namespace Script.Characters
 
         private void EventAttack(GameObject target)
         {
+            if (isDead) return;
+            
             if (target != null)
             {
                 attackTarget = target;

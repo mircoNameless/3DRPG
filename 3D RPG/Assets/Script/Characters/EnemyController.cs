@@ -18,6 +18,7 @@ namespace Script.Characters
     }
 
     [RequireComponent(typeof(NavMeshAgent))]
+    [RequireComponent(typeof(CharacterStats))]
     public class EnemyController : MonoBehaviour, IEndGameObserver
     {
         private NavMeshAgent agent;
@@ -31,7 +32,7 @@ namespace Script.Characters
         public bool isGuard;
         private float speed;
 
-        private GameObject attackTarget;
+        protected GameObject attackTarget;
 
         public float lookAtTime;
         private float remainLookAtTime;
@@ -73,16 +74,20 @@ namespace Script.Characters
                 enemyState = EnemyState.PATORL;
                 GetNewWayPoint();
             }
-        }
 
-        private void OnEnable()
-        {
+            // FIXME: 场景切换后修改掉
             GameManager.Instance.AddObserver(this);
         }
 
+        // 切换场景时启用
+        // private void OnEnable()
+        // {
+        //     GameManager.Instance.AddObserver(this);
+        // }
+
         private void OnDisable()
         {
-            if (GameManager.Instance)
+            if (GameManager.IsInitialized)
             {
                 GameManager.Instance.RemoveObserver(this);
             }
@@ -218,7 +223,8 @@ namespace Script.Characters
                     break;
                 case EnemyState.DEAD:
                     coll.enabled = false;
-                    agent.enabled = false;
+                    agent.radius = 0f;
+                    // agent.enabled = false;
                     Destroy(gameObject, 2f);
                     break;
                 default:
@@ -229,16 +235,19 @@ namespace Script.Characters
         private void Attack()
         {
             transform.LookAt(attackTarget.transform);
-            if (TargetInAttackRange())
-            {
-                // 近身攻击
-                anim.SetTrigger("Attack");
-            }
-            else if (TargetInSkillRange())
+            
+            if (TargetInSkillRange())
             {
                 // 技能攻击
                 anim.SetTrigger("Skill");
             }
+            else if (TargetInAttackRange())
+            {
+                // 近身攻击
+                anim.SetTrigger("Attack");
+            }
+
+            
         }
 
         private bool FoundPlayer()
