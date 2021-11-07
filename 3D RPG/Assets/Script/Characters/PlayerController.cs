@@ -18,11 +18,15 @@ namespace Script.Characters
 
         private bool isDead;
 
+        private float stopDistance;
+
         private void Awake()
         {
             agent = GetComponent<NavMeshAgent>();
             anim = GetComponent<Animator>();
             characterStats = GetComponent<CharacterStats>();
+
+            stopDistance = agent.stoppingDistance;
         }
 
         private void Start()
@@ -59,6 +63,7 @@ namespace Script.Characters
             StopAllCoroutines();
             if (isDead) return;
 
+            agent.stoppingDistance = stopDistance;
             agent.isStopped = false;
             agent.SetDestination(target);
         }
@@ -81,10 +86,10 @@ namespace Script.Characters
         IEnumerator MoveToAttackTarget()
         {
             agent.isStopped = false;
+            agent.stoppingDistance = characterStats.attackData.attackRange;
 
             transform.LookAt(attackTarget.transform);
-
-            // todo: 修改攻击范围参数
+            
             while (Vector3.Distance(attackTarget.transform.position, transform.position) >
                    characterStats.attackData.attackRange)
             {

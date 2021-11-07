@@ -26,7 +26,7 @@ namespace Script.Characters
         private Collider coll;
         private EnemyState enemyState;
 
-        private CharacterStats characterStats;
+        protected CharacterStats characterStats;
 
         [Header("Basic Setting")] public float sightRadius;
         public bool isGuard;
@@ -313,7 +313,7 @@ namespace Script.Characters
         // Animation Event
         void Hit()
         {
-            if (attackTarget != null)
+            if (attackTarget != null && transform.IsFacingTarget(attackTarget.transform))
             {
                 var targetStats = attackTarget.GetComponent<CharacterStats>();
                 targetStats.TakeDamage(characterStats, targetStats);

@@ -5,7 +5,7 @@ namespace Script.Characters.Enemy
 {
     public class Grunt : EnemyController
     {
-        [Header("Skill")] public float kickForce = 10f;
+        [Header("Skill")] public float kickForce = 1f;
 
         public void KickOff()
         {
