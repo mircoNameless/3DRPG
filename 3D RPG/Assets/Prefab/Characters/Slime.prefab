@@ -46,6 +46,7 @@ GameObject:
   - component: {fileID: 4350521746280764355}
   - component: {fileID: 4350521746280764352}
   - component: {fileID: 1090217374191746}
+  - component: {fileID: 5272681237140071269}
   m_Layer: 7
   m_Name: Slime
   m_TagString: Enemy
@@ -66,6 +67,7 @@ Transform:
   m_Children:
   - {fileID: 4354942620175148693}
   - {fileID: 4355269278053379509}
+  - {fileID: 5030422497979038069}
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: -63.112, z: 0}
@@ -155,6 +157,23 @@ MonoBehaviour:
   characterData: {fileID: 0}
   attackData: {fileID: 11400000, guid: bbfc476672309ec48b994d955bcdf50a, type: 2}
   isCritical: 0
+--- !u!114 &5272681237140071269
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 4351594302730477135}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 81fc8f5945b4a49438aa02d035d123c0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  healthUIPrefab: {fileID: 7985337082064011604, guid: ab531c9ac15db0f439c1b93e3ae824e8, type: 3}
+  barPoint: {fileID: 5030422497979038069}
+  alwaysVisible: 0
+  visibleTime: 2
+  healthSlider: {fileID: 0}
 --- !u!1 &4351607006409404229
 GameObject:
   m_ObjectHideFlags: 0
@@ -525,3 +544,33 @@ Transform:
   m_Father: {fileID: 4354942620175148693}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: -4.145489e-15, y: 5.153698e-16, z: -20.453817}
+--- !u!1 &5027838370049270794
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 5030422497979038069}
+  m_Layer: 7
+  m_Name: HealthBarPoint
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &5030422497979038069
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5027838370049270794}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 1.5, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 4355388269519859811}
+  m_RootOrder: 2
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}

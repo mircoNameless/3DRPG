@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using Script.Character_Stats.MonoBehaviour;
 using Script.Character_Stats.ScriptableObject;
+using Script.Characters.Enemy;
 using Script.Manager;
 using UnityEngine;
 using UnityEngine.AI;
@@ -74,7 +75,7 @@ namespace Script.Characters
         private void EventAttack(GameObject target)
         {
             if (isDead) return;
-            
+
             if (target != null)
             {
                 attackTarget = target;
@@ -89,7 +90,7 @@ namespace Script.Characters
             agent.stoppingDistance = characterStats.attackData.attackRange;
 
             transform.LookAt(attackTarget.transform);
-            
+
             while (Vector3.Distance(attackTarget.transform.position, transform.position) >
                    characterStats.attackData.attackRange)
             {
@@ -111,9 +112,20 @@ namespace Script.Characters
         //Animation Event
         void Hit()
         {
-            var targetStats = attackTarget.GetComponent<CharacterStats>();
-
-            targetStats.TakeDamage(characterStats, targetStats);
+            if (attackTarget.CompareTag("Attackable"))
+            {
+                if (attackTarget.GetComponent<Rock>() && attackTarget.GetComponent<Rock>().rockStates == RockStates.HitNothing)
+                {
+                    attackTarget.GetComponent<Rock>().rockStates = RockStates.HitEnemy;
+                    attackTarget.GetComponent<Rigidbody>().velocity = Vector3.one;
+                    attackTarget.GetComponent<Rigidbody>().AddForce(transform.forward * 20, ForceMode.Impulse);
+                }
+            }
+            else
+            {
+                var targetStats = attackTarget.GetComponent<CharacterStats>();
+                targetStats.TakeDamage(characterStats, targetStats);
+            }
         }
     }
 }

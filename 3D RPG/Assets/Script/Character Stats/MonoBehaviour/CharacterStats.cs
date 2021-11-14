@@ -1,6 +1,7 @@
 using System;
 using Script.Character_Stats.ScriptableObject;
 using Script.Combat;
+using Script.Manager;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -8,6 +9,8 @@ namespace Script.Character_Stats.MonoBehaviour
 {
     public class CharacterStats : UnityEngine.MonoBehaviour
     {
+        public event Action<int, int> updateHealthBarOnAttack;
+
         public CharacterData_SO templateData;
         public CharacterData_SO characterData;
 
@@ -90,12 +93,30 @@ namespace Script.Character_Stats.MonoBehaviour
             int damage = Mathf.Max(0, attacker.CurrentDamage() - defender.currentDefense);
             currentHealth = Mathf.Max(currentHealth - damage, 0);
 
-            if (isCritical)
+            if (attacker.isCritical)
             {
                 defender.GetComponent<Animator>().SetTrigger("Hit");
             }
+
             // todo: Update UI
+            updateHealthBarOnAttack?.Invoke(currentHealth, maxHealth);
             // todo: 经验Update
+            if (currentHealth <= 0)
+            {
+                attacker.characterData.UpdateExp(characterData.killPoint);
+            }
+        }
+
+        public void TakeDamage(int damage, CharacterStats defender)
+        {
+            int currentDamage = Mathf.Max(damage - defender.currentDefense, 0);
+            currentHealth = Mathf.Max(currentHealth - currentDamage, 0);
+            updateHealthBarOnAttack?.Invoke(currentHealth, maxHealth);
+
+            if (currentHealth <= 0)
+            {
+                GameManager.Instance.playerStats.characterData.UpdateExp(characterData.killPoint);
+            }
         }
 
         private int CurrentDamage()

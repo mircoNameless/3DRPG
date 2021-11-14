@@ -56,6 +56,10 @@ namespace Script.Manager
                 {
                     OnEnemyClicked?.Invoke(hitInfo.collider.gameObject);
                 }
+                if (hitInfo.collider.gameObject.CompareTag("Attackable"))
+                {
+                    OnEnemyClicked?.Invoke(hitInfo.collider.gameObject);
+                }
             }
         }
     }
