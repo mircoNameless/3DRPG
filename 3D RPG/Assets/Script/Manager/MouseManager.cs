@@ -39,6 +39,9 @@ namespace Script.Manager
                     case "Enemy":
                         Cursor.SetCursor(attack, new Vector2(16, 16), CursorMode.Auto);
                         break;
+                    case "Portal":
+                        Cursor.SetCursor(doorway, new Vector2(16, 16), CursorMode.Auto);
+                        break;
                 }
             }
         }
@@ -60,6 +63,12 @@ namespace Script.Manager
                 {
                     OnEnemyClicked?.Invoke(hitInfo.collider.gameObject);
                 }
+                
+                if (hitInfo.collider.gameObject.CompareTag("Portal"))
+                {
+                    ONMouseClicked?.Invoke(hitInfo.point);
+                }
+                
             }
         }
     }
