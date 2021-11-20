@@ -10,8 +10,16 @@ using UnityEngine.SceneManagement;
 
 public class SceneController : Singleton<SceneController>
 {
+    public GameObject playerPrefab;
+    
     private GameObject player;
     private NavMeshAgent playerAgent;
+
+    protected override void Awake()
+    {
+        base.Awake();
+        DontDestroyOnLoad(this);
+    }
 
     public void TransitionToDestination(TransitionPoint transitionPoint)
     {
@@ -21,6 +29,7 @@ public class SceneController : Singleton<SceneController>
                 StartCoroutine(Transition(SceneManager.GetActiveScene().name, transitionPoint.destinationTag));
                 break;
             case TransitionType.DifferentScene:
+                StartCoroutine(Transition(transitionPoint.sceneName, transitionPoint.destinationTag));
                 break;
             default:
                 throw new ArgumentOutOfRangeException();
@@ -29,14 +38,30 @@ public class SceneController : Singleton<SceneController>
 
     private IEnumerator Transition(string sceneName, DestinationTag destinationTag)
     {
-        player = GameManager.Instance.playerStats.gameObject;
-        playerAgent = player.GetComponent<NavMeshAgent>();
-        playerAgent.enabled = false;
+        // todo: 保存数据
+        SaveManager.Instance.SavePlayerData();
         
-        player.transform.SetPositionAndRotation(GetDestination(destinationTag).transform.position, GetDestination(destinationTag).transform.rotation);
+        if (SceneManager.GetActiveScene().name != sceneName)
+        {
+            yield return SceneManager.LoadSceneAsync(sceneName);
+            yield return Instantiate(playerPrefab, GetDestination(destinationTag).transform.position,
+                GetDestination(destinationTag).transform.rotation);
+            // 读取数据
+            SaveManager.Instance.LoadPlayerData();
+            yield break;
+        }
+        else
+        {
+            player = GameManager.Instance.playerStats.gameObject;
+            playerAgent = player.GetComponent<NavMeshAgent>();
+            playerAgent.enabled = false;
 
-        playerAgent.enabled = true;
-        
+            player.transform.SetPositionAndRotation(GetDestination(destinationTag).transform.position,
+                GetDestination(destinationTag).transform.rotation);
+
+            playerAgent.enabled = true;
+        }
+
         yield return null;
     }
 
@@ -51,7 +76,7 @@ public class SceneController : Singleton<SceneController>
                 return entrances[i];
             }
         }
-        
+
         return null;
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cinemachine;
 using Script.Character_Stats.MonoBehaviour;
 using Tools;
 using UnityEngine;
@@ -9,11 +10,27 @@ namespace Script.Manager
     {
         public CharacterStats playerStats;
 
+        private CinemachineFreeLook followCamera;
+
         private List<IEndGameObserver> endGameObservers = new List<IEndGameObserver>();
+        
+        protected override void Awake()
+        {
+            base.Awake();
+            DontDestroyOnLoad(this);
+        }
 
         public void RegisterPlay(CharacterStats player)
         {
             playerStats = player;
+
+            followCamera = FindObjectOfType<CinemachineFreeLook>();
+
+            if (followCamera != null)
+            {
+                followCamera.Follow = playerStats.transform.GetChild(2);
+                followCamera.Follow = playerStats.transform.GetChild(2);
+            }
         }
 
         public void AddObserver(IEndGameObserver gameObserver)

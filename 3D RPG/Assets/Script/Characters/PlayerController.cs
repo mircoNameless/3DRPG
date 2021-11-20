@@ -32,10 +32,19 @@ namespace Script.Characters
 
         private void Start()
         {
+            GameManager.Instance.RegisterPlay(characterStats);
+        }
+
+        private void OnEnable()
+        {
             MouseManager.Instance.ONMouseClicked += MoveTotTarget;
             MouseManager.Instance.OnEnemyClicked += EventAttack;
+        }
 
-            GameManager.Instance.RegisterPlay(characterStats);
+        private void OnDisable()
+        {
+            MouseManager.Instance.ONMouseClicked -= MoveTotTarget;
+            MouseManager.Instance.OnEnemyClicked -= EventAttack;
         }
 
 

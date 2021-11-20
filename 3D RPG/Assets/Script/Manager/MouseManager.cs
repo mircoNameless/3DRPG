@@ -17,7 +17,7 @@ namespace Script.Manager
         protected override void Awake()
         {
             base.Awake();
-            // DontDestroyOnLoad(this);
+            DontDestroyOnLoad(this);
         }
 
         private void Update()
