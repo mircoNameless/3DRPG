@@ -8,10 +8,14 @@ using UnityEngine;
 using UnityEngine.AI;
 using UnityEngine.SceneManagement;
 
-public class SceneController : Singleton<SceneController>
+public class SceneController : Singleton<SceneController>, IEndGameObserver
 {
     public GameObject playerPrefab;
-    
+
+    public SceneFader sceneFaderPrefab;
+
+    private bool fadeFinished;
+
     private GameObject player;
     private NavMeshAgent playerAgent;
 
@@ -19,6 +23,12 @@ public class SceneController : Singleton<SceneController>
     {
         base.Awake();
         DontDestroyOnLoad(this);
+    }
+
+    private void Start()
+    {
+        GameManager.Instance.AddObserver(this);
+        fadeFinished = true;
     }
 
     public void TransitionToDestination(TransitionPoint transitionPoint)
@@ -40,7 +50,7 @@ public class SceneController : Singleton<SceneController>
     {
         // todo: 保存数据
         SaveManager.Instance.SavePlayerData();
-        
+
         if (SceneManager.GetActiveScene().name != sceneName)
         {
             yield return SceneManager.LoadSceneAsync(sceneName);
@@ -78,5 +88,55 @@ public class SceneController : Singleton<SceneController>
         }
 
         return null;
+    }
+
+    public void TransitionToMain()
+    {
+        StartCoroutine(LoadMain());
+    }
+
+    public void TransitionToLoadGame()
+    {
+        StartCoroutine(LoadLevel(SaveManager.Instance.SceneName));
+    }
+
+    public void TransitionToFirstLevel()
+    {
+        StartCoroutine(LoadLevel("Game"));
+    }
+
+    IEnumerator LoadLevel(string scene)
+    {
+        SceneFader fade = Instantiate(sceneFaderPrefab);
+        if (scene != "")
+        {
+            yield return StartCoroutine(fade.FadeOut(1f));
+            yield return SceneManager.LoadSceneAsync(scene);
+            yield return Instantiate(playerPrefab, GameManager.Instance.GetEntrance().position,
+                GameManager.Instance.GetEntrance().rotation);
+
+            // 保存游戏
+            SaveManager.Instance.SavePlayerData();
+            yield return StartCoroutine(fade.FadeIn(1f));
+            yield break;
+        }
+    }
+
+    IEnumerator LoadMain()
+    {
+        SceneFader fade = Instantiate(sceneFaderPrefab);
+        yield return StartCoroutine(fade.FadeOut(1f));
+        yield return SceneManager.LoadSceneAsync("Main");
+        yield return StartCoroutine(fade.FadeIn(1f));
+        yield break;
+    }
+
+    public void EndNotify()
+    {
+        if (fadeFinished)
+        {
+            fadeFinished = false;
+            StartCoroutine(LoadMain());
+        }
     }
 }

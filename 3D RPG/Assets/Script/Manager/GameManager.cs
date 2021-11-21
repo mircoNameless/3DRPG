@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Cinemachine;
 using Script.Character_Stats.MonoBehaviour;
+using Script.Transition;
 using Tools;
 using UnityEngine;
 
@@ -29,7 +30,7 @@ namespace Script.Manager
             if (followCamera != null)
             {
                 followCamera.Follow = playerStats.transform.GetChild(2);
-                followCamera.Follow = playerStats.transform.GetChild(2);
+                followCamera.LookAt = playerStats.transform.GetChild(2);
             }
         }
 
@@ -49,6 +50,19 @@ namespace Script.Manager
             {
                 observer.EndNotify();
             }
+        }
+
+        public Transform GetEntrance()
+        {
+            foreach (var item in FindObjectsOfType<TranstionDestination>())
+            {
+                if (item.destinationTag == DestinationTag.Enter)
+                {
+                    return item.transform;
+                }
+            }
+
+            return null;
         }
     }
 }
